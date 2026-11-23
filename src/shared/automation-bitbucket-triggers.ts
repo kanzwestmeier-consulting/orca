@@ -56,6 +56,10 @@ export function assertBitbucketTrigger(trigger: AutomationBitbucketTrigger): voi
   if (unknown !== undefined) {
     throw new Error(`${name}: "${unknown}" is not a Bitbucket repository (workspace/repository).`)
   }
+  // The wire shape is one object for both events, so a phrase can arrive on the wrong one.
+  if (trigger.event === 'review_requested' && 'mention' in trigger) {
+    throw new Error(`${name} takes no mention=.`)
+  }
   const mention = trigger.event === 'mentioned' ? trigger.mention : undefined
   if (
     (trigger.from?.length ?? 0) > MAX_PEOPLE ||
