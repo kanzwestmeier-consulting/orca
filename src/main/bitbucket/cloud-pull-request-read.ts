@@ -16,14 +16,10 @@ import {
   type BitbucketCloudQuery
 } from './cloud-review-request'
 import type { RawBitbucketPullRequest } from './pull-request-mappers'
-import { selectDiffFileSection } from './pull-request-diff-file-section'
+import { diffReadLimit, toDiffReply } from './pull-request-diff-reply'
 
 // Bitbucket Cloud caps pull request pages at 50.
 const LIST_PAGE_SIZE = 50
-// One reply must fit a remote runtime's WebSocket frame.
-export const MAX_DIFF_REPLY_CHARS = 256 * 1024
-const MAX_DIFF_SCAN_CHARS = 8 * 1024 * 1024
-
 export type RawBitbucketReviewUser = {
   display_name?: string | null
   nickname?: string | null
@@ -159,17 +155,7 @@ export async function getBitbucketCloudPullRequestDiff(
   const reply = await getBitbucketCloudText(
     target,
     `${pullRequestPath(target)}/diff`,
-    path ? MAX_DIFF_SCAN_CHARS : MAX_DIFF_REPLY_CHARS
+    diffReadLimit(path)
   )
-  if (!reply.ok) {
-    return reply
-  }
-  const diff = path ? selectDiffFileSection(reply.value.text, path) : reply.value.text
-  return {
-    ok: true,
-    value: {
-      diff: diff.slice(0, MAX_DIFF_REPLY_CHARS),
-      truncated: reply.value.truncated || diff.length > MAX_DIFF_REPLY_CHARS
-    }
-  }
+  return reply.ok ? { ok: true, value: toDiffReply(reply.value, path) } : reply
 }

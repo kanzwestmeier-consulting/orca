@@ -1,13 +1,16 @@
 import { z } from 'zod'
 import {
   BITBUCKET_COMMENT_SIDES,
+  BITBUCKET_DIALECTS,
   BITBUCKET_PULL_REQUEST_STATE_FILTERS
 } from '../../bitbucket/bitbucket-pull-request-review'
 import { OptionalFiniteNumber, OptionalString, requiredString } from '../rpc-param-primitives'
 
 const Repository = z.object({
   workspace: requiredString('Workspace is required'),
-  repoSlug: requiredString('Repository is required')
+  repoSlug: requiredString('Repository is required'),
+  dialect: z.enum(BITBUCKET_DIALECTS).optional(),
+  serverUrl: OptionalString
 })
 
 const PositiveId = z.number().int().positive()

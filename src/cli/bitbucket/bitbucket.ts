@@ -1,4 +1,5 @@
 import type { BitbucketConnectionStatus } from '../../shared/bitbucket/bitbucket-credentials'
+import type { BitbucketServerConnectionStatus } from '../../shared/bitbucket/bitbucket-server-credentials'
 import {
   BITBUCKET_COMMENT_SIDES,
   BITBUCKET_PULL_REQUEST_STATE_FILTERS,
@@ -114,7 +115,7 @@ async function addComment(context: HandlerContext): Promise<void> {
   }
   printResult(response, context.json, (comment) =>
     [
-      `Commented on ${target.workspace}/${target.repoSlug}#${target.id}`,
+      `Commented on ${target.workspace}/${target.repoSlug} #${target.id}`,
       formatBitbucketComment(comment),
       ...(comment.url ? [`URL: ${comment.url}`] : [])
     ].join('\n')
@@ -123,15 +124,22 @@ async function addComment(context: HandlerContext): Promise<void> {
 
 export const BITBUCKET_HANDLERS: Record<string, CommandHandler> = {
   'bitbucket connection': async (context) => {
-    const response = await context.client.call<BitbucketConnectionStatus>('bitbucket.status')
+    // An older host reports only bitbucket.org and sends no `server`.
+    const response = await context.client.call<
+      BitbucketConnectionStatus & { server?: BitbucketServerConnectionStatus }
+    >('bitbucket.status')
+    const source = (from: string): string =>
+      from === 'environment' ? 'host environment' : 'saved in Orca'
     printResult(response, context.json, (status) =>
-      status.configured
-        ? [
-            `Connected (${status.source === 'environment' ? 'host environment' : 'saved in Orca'})`,
-            `Account: ${status.account ?? status.email ?? 'unknown'}`,
-            'A saved connection; this does not verify access to a repository.'
-          ].join('\n')
-        : 'Bitbucket is not connected on this host. Connect it in Settings > Integrations.'
+      [
+        status.configured
+          ? `bitbucket.org: connected (${source(status.source)}), account ${status.account ?? status.email ?? 'unknown'}`
+          : 'bitbucket.org: not connected',
+        status.server?.configured
+          ? `Data Center: connected (${source(status.server.source)}) to ${status.server.baseUrl ?? 'an unknown server'}, account ${status.server.account ?? 'unknown'}`
+          : 'Data Center: not connected',
+        'Saved connections; this does not verify access to a repository. Connect in Settings > Integrations.'
+      ].join('\n')
     )
   },
   'bitbucket pr list': async (context) => {

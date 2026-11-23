@@ -1,6 +1,15 @@
+export const BITBUCKET_DIALECTS = ['cloud', 'server'] as const
+/** `cloud` is bitbucket.org; `server` is the connected Bitbucket Data Center instance. */
+export type BitbucketDialect = (typeof BITBUCKET_DIALECTS)[number]
+
 export type BitbucketRepositoryTarget = {
+  /** A Cloud workspace, or a Data Center project key (`~user` for a personal repository). */
   workspace: string
   repoSlug: string
+  /** Absent: the host uses its only connected Bitbucket. */
+  dialect?: BitbucketDialect
+  /** Data Center only: the server a pasted URL names, checked against the connected one. */
+  serverUrl?: string
 }
 
 export type BitbucketPullRequestTarget = BitbucketRepositoryTarget & { id: number }
@@ -79,6 +88,8 @@ export type BitbucketPullRequestCommentList = {
 
 export type BitbucketReviewFailureCode =
   | 'bitbucket_not_connected'
+  | 'bitbucket_ambiguous_host'
+  | 'bitbucket_line_not_in_diff'
   | 'bitbucket_auth_rejected'
   | 'bitbucket_forbidden'
   | 'bitbucket_not_found'

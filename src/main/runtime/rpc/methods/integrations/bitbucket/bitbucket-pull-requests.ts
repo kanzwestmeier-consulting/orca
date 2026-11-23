@@ -1,15 +1,14 @@
-// bitbucket.*: pull request reads and comments with the Bitbucket credential saved on this host.
+// bitbucket.*: pull request reads and comments with the Bitbucket credentials saved on this host.
 // The credential never leaves the host; callers get mapped results only.
 import {
-  addBitbucketCloudPullRequestComment,
-  listBitbucketCloudPullRequestComments
-} from '../../../../../bitbucket/cloud-pull-request-comments'
-import {
-  getBitbucketCloudPullRequestDetail,
-  getBitbucketCloudPullRequestDiff,
-  listBitbucketCloudPullRequests
-} from '../../../../../bitbucket/cloud-pull-request-read'
+  addBitbucketPullRequestComment,
+  getBitbucketPullRequestDetail,
+  getBitbucketPullRequestDiff,
+  listBitbucketPullRequestComments,
+  listBitbucketPullRequests
+} from '../../../../../bitbucket/pull-request-review'
 import { getBitbucketConnectionStatus } from '../../../../../bitbucket/credential-connection'
+import { getBitbucketServerConnectionStatus } from '../../../../../bitbucket/server-credential-connection'
 import {
   BitbucketPullRequestCommentAdd,
   BitbucketPullRequestDiffRead,
@@ -26,15 +25,21 @@ export const BITBUCKET_PULL_REQUEST_METHODS = [
     name: 'bitbucket.status',
     permission: 'workspace',
     params: null,
-    handler: async () => getBitbucketConnectionStatus()
+    handler: async () => {
+      const [cloud, server] = await Promise.all([
+        getBitbucketConnectionStatus(),
+        getBitbucketServerConnectionStatus()
+      ])
+      return { ...cloud, server }
+    }
   }),
   defineMethod({
     name: 'bitbucket.listPullRequests',
     permission: 'workspace',
     params: BitbucketPullRequestList,
-    handler: async ({ workspace, repoSlug, state, limit }) =>
-      listBitbucketCloudPullRequests(
-        { workspace, repoSlug },
+    handler: async ({ state, limit, ...repo }) =>
+      listBitbucketPullRequests(
+        repo,
         state ?? 'open',
         Math.min(Math.max(1, Math.floor(limit ?? DEFAULT_LIST_LIMIT)), MAX_LIST_LIMIT)
       )
@@ -43,25 +48,25 @@ export const BITBUCKET_PULL_REQUEST_METHODS = [
     name: 'bitbucket.getPullRequest',
     permission: 'workspace',
     params: BitbucketPullRequestRead,
-    handler: async (target) => getBitbucketCloudPullRequestDetail(target)
+    handler: async (target) => getBitbucketPullRequestDetail(target)
   }),
   defineMethod({
     name: 'bitbucket.getPullRequestDiff',
     permission: 'workspace',
     params: BitbucketPullRequestDiffRead,
-    handler: async ({ path, ...target }) => getBitbucketCloudPullRequestDiff(target, path?.trim())
+    handler: async ({ path, ...target }) => getBitbucketPullRequestDiff(target, path?.trim())
   }),
   defineMethod({
     name: 'bitbucket.listPullRequestComments',
     permission: 'workspace',
     params: BitbucketPullRequestRead,
-    handler: async (target) => listBitbucketCloudPullRequestComments(target)
+    handler: async (target) => listBitbucketPullRequestComments(target)
   }),
   defineMethod({
     name: 'bitbucket.addPullRequestComment',
     permission: 'workspace',
     params: BitbucketPullRequestCommentAdd,
     handler: async ({ body, parentId, anchor, ...target }) =>
-      addBitbucketCloudPullRequestComment(target, body, { anchor, parentId })
+      addBitbucketPullRequestComment(target, body, { anchor, parentId })
   })
 ]

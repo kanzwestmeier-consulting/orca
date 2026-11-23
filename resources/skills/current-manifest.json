@@ -36,16 +36,16 @@
     {
       "name": "orca-bitbucket",
       "sourcePath": "skills/orca-bitbucket",
-      "packageDigest": "99da8e8060b3825cd240e389c186fd13d3f9d70de6e9078aafcd3d46d6f9a882",
+      "packageDigest": "306c55887c07755d870127212419b0a12929066a44c64649f44f4228d33a9007",
       "files": [
         {
           "path": "SKILL.md",
-          "size": 2578,
+          "size": 2599,
           "executable": false,
           "classification": "text",
-          "exactSha256": "466720f9b70cd511dc96b258580159a797ccb8b3eec632daa1a0cce4c3cc1b62",
-          "textNormalizedSha256": "466720f9b70cd511dc96b258580159a797ccb8b3eec632daa1a0cce4c3cc1b62",
-          "identitySha256": "466720f9b70cd511dc96b258580159a797ccb8b3eec632daa1a0cce4c3cc1b62"
+          "exactSha256": "ac2aedb1adce23b265a57bf55b18aaf2d3966f047061cbbc75ec6ab7bf46f56f",
+          "textNormalizedSha256": "ac2aedb1adce23b265a57bf55b18aaf2d3966f047061cbbc75ec6ab7bf46f56f",
+          "identitySha256": "ac2aedb1adce23b265a57bf55b18aaf2d3966f047061cbbc75ec6ab7bf46f56f"
         }
       ]
     },
