@@ -12,7 +12,37 @@ const AGENT_ID_FLAG_HELP =
 const SKILLS_FORCE_FLAG_HELP =
   '--force                Replace skipped copies where possible, moving each to ~/.agents/.orca-skill-backups first.'
 
+const BITBUCKET_HOST_FLAG_HELP = {
+  server: '--server               --repo is on the connected Data Center server',
+  cloud: '--cloud                --repo is on bitbucket.org'
+}
+
+const BITBUCKET_PULL_REQUEST_FLAG_HELP = {
+  url: '--url <url>            Pull request URL on bitbucket.org or the connected Data Center server; also accepted positionally',
+  repo: '--repo <workspace>/<repository>  Bitbucket repository (<PROJECT>/<repository> on Data Center); pass it with --pr instead of a URL',
+  pr: '--pr <id>              Pull request number in --repo',
+  ...BITBUCKET_HOST_FLAG_HELP
+}
+
 const COMMAND_SCOPED_FLAG_HELP: Record<string, Record<string, string>> = {
+  'bitbucket pr list': {
+    repo: '--repo <workspace>/<repository>  Bitbucket repository to list (<PROJECT>/<repository> on Data Center)',
+    ...BITBUCKET_HOST_FLAG_HELP,
+    state: '--state <state>        open (default), merged, declined, superseded or all'
+  },
+  'bitbucket pr view': BITBUCKET_PULL_REQUEST_FLAG_HELP,
+  'bitbucket pr diff': {
+    ...BITBUCKET_PULL_REQUEST_FLAG_HELP,
+    path: '--path <file>          Print only the part of the diff that changes this file'
+  },
+  'bitbucket pr comment list': BITBUCKET_PULL_REQUEST_FLAG_HELP,
+  'bitbucket pr comment add': {
+    ...BITBUCKET_PULL_REQUEST_FLAG_HELP,
+    file: '--file <path>          Changed file to comment on; needs --line',
+    line: '--line <n>             Line the diff shows, numbered as in the new file (the old file with --side old)',
+    side: '--side new|old         old targets a removed line; new is the default',
+    parent: '--parent <commentId>   Reply to this comment'
+  },
   'bot item add': {
     title: BOT_ITEM_TITLE_HELP,
     for: '--for bot:<name>       Make the item for another bot'

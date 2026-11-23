@@ -75,7 +75,7 @@ ORCA bitbucket pr comment add <pull-request> --body-file review-summary.md --jso
 ```
 
 - `--file` with `--line` puts the comment on that line of the changed file. The line is the line number in the new version of the file. Use `--side old` with the old file's line number to comment on a removed line.
-- An inline comment belongs on a line the diff shows. Take line numbers from the diff's hunks; do not guess. Data Center refuses any other line with `bitbucket_line_not_in_diff`.
+- An inline comment belongs on a line the diff shows. Take line numbers from the diff's hunks; do not guess. Orca refuses any other line with `bitbucket_line_not_in_diff`.
 - `--parent <commentId>` replies in an existing thread. A reply takes no `--file`, `--line`, or `--side`.
 - Use `--body-file <path>` for multiline text, or `--body-file -` for stdin.
 
@@ -90,6 +90,7 @@ A non-zero exit means the command did not complete. The error code names the cau
 - `bitbucket_not_connected`: no connection for that Bitbucket is saved on the Orca host, or the URL is on another server than the connected one. Ask the user to connect it in Orca's Settings > Integrations.
 - `bitbucket_auth_rejected`, `bitbucket_forbidden`: the saved credential was rejected or lacks pull request access. Report it; do not retry.
 - `bitbucket_not_found`: no such repository or pull request, or the credential cannot see it. Check the workspace, repository and number.
+- `bitbucket_line_not_in_diff`: the diff does not show that line of that file, so nothing was posted. Read `pr diff --path <file>` and take the line number from its hunks.
 - `bitbucket_rate_limited`: wait before retrying.
 - `bitbucket_timeout`, `bitbucket_write_unverified`, or a comment that failed with a network error: the comment may have been posted. Run `comment list` and look for it before posting again.
 

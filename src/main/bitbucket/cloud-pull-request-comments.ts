@@ -3,10 +3,16 @@ import type {
   BitbucketPullRequestComment,
   BitbucketPullRequestCommentList,
   BitbucketPullRequestTarget,
+  BitbucketReviewFailure,
   BitbucketReviewResult
 } from '../../shared/bitbucket/bitbucket-pull-request-review'
-import { mapBitbucketReviewUser, type RawBitbucketReviewUser } from './cloud-pull-request-read'
+import {
+  getBitbucketCloudPullRequestDiff,
+  mapBitbucketReviewUser,
+  type RawBitbucketReviewUser
+} from './cloud-pull-request-read'
 import { getBitbucketCloudJson, postBitbucketCloudJson } from './cloud-review-request'
+import { diffShowsLine } from './pull-request-diff-line'
 
 const COMMENT_PAGE_SIZE = 100
 const MAX_COMMENT_PAGES = 5
@@ -100,11 +106,37 @@ export async function listBitbucketCloudPullRequestComments(
   return { ok: true, value: { comments, truncated: true } }
 }
 
+// Bitbucket Cloud stores a comment on any line number, so a wrong one would never show in the diff.
+async function refuseAnchorOutsideDiff(
+  target: BitbucketPullRequestTarget,
+  anchor: BitbucketCommentAnchor
+): Promise<BitbucketReviewFailure | null> {
+  const reply = await getBitbucketCloudPullRequestDiff(target, anchor.path)
+  if (!reply.ok) {
+    return reply
+  }
+  // A file section cut short cannot rule a line out.
+  if (reply.value.truncated || diffShowsLine(reply.value.diff, anchor)) {
+    return null
+  }
+  return {
+    ok: false,
+    code: 'bitbucket_line_not_in_diff',
+    error: `Line ${anchor.line} of ${anchor.path} is not part of this pull request's diff. An inline comment needs a line the diff shows.`
+  }
+}
+
 export async function addBitbucketCloudPullRequestComment(
   target: BitbucketPullRequestTarget,
   body: string,
   placement: { anchor?: BitbucketCommentAnchor; parentId?: number }
 ): Promise<BitbucketReviewResult<BitbucketPullRequestComment>> {
+  if (placement.anchor && placement.parentId === undefined) {
+    const refusal = await refuseAnchorOutsideDiff(target, placement.anchor)
+    if (refusal) {
+      return refusal
+    }
+  }
   const reply = await postBitbucketCloudJson<RawBitbucketComment>(
     target,
     commentsPath(target),
