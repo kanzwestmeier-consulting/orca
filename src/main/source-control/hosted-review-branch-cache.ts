@@ -27,6 +27,8 @@ import {
   type InflightToken
 } from './hosted-review-inflight-lookups'
 import {
+  __resetHostedReviewScopeGenerationsForTests,
+  bumpAllScopeGenerations,
   bumpScopeGeneration,
   hostedReviewRepoScope,
   scopeGeneration
@@ -123,6 +125,23 @@ export function invalidateHostedReviewBranchCache(
   }
   retireInflightWithPrefix(prefix)
   dropFailuresWithPrefix(prefix)
+}
+
+/**
+ * Drops every cached answer. Called when a provider credential changes: a lookup
+ * that now fails would otherwise keep serving the answer the old credential got.
+ */
+export function invalidateAllHostedReviewBranchCaches(): void {
+  bumpAllScopeGenerations()
+  entries.clear()
+  retireInflightWithPrefix('')
+  dropFailuresWithPrefix('')
+}
+
+/** @internal - exposed for tests only */
+export function __resetHostedReviewBranchCacheForTests(): void {
+  invalidateAllHostedReviewBranchCaches()
+  __resetHostedReviewScopeGenerationsForTests()
 }
 
 /** Detached answers may fill gaps or replace strictly older attempts only; never outrank the served pre-refresh answer or a replacement owner. Late null would otherwise mask a real review. */
