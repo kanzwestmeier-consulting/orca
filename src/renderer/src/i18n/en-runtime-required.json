@@ -2507,6 +2507,7 @@
         "accessibleNameNoReason": "Automation run. {{label}}: {{name}}.",
         "accessibleNameNoReasonAt": "Automation run. {{label}}: {{name}}. {{time}}.",
         "afterThirtyDays": "After 30 days",
+        "bitbucket": "Bitbucket",
         "calendar": "Calendar",
         "callerSent": "The caller sent",
         "cancel": "Cancel",
@@ -2570,6 +2571,10 @@
         "webhook": "Webhook",
         "webhookCall": "Webhook call",
         "what": {
+          "bitbucket": {
+            "mentioned": "Mention",
+            "review_requested": "Review requested"
+          },
           "calendar": {
             "starting_soon": "Meeting starting soon"
           },

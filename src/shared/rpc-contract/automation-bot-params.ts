@@ -94,6 +94,17 @@ export const AutomationEventTriggers = z
           minutesBefore: z.number().int().nonnegative()
         })
         .strict(),
+      // Checked on this host only; the store checks the repositories and sizes.
+      z
+        .object({
+          id: FilterText,
+          source: z.literal('bitbucket'),
+          event: z.enum(AUTOMATION_EVENT_KINDS.bitbucket),
+          repos: z.array(FilterText),
+          mention: FilterText.optional(),
+          from: z.array(FilterText).optional()
+        })
+        .strict(),
       // id '' and rev 0 ask the host to make the hook; the store checks paths and sizes.
       z
         .object({

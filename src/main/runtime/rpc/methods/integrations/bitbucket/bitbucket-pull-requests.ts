@@ -9,6 +9,7 @@ import {
 } from '../../../../../bitbucket/pull-request-review'
 import { getBitbucketConnectionStatus } from '../../../../../bitbucket/credential-connection'
 import { getBitbucketServerConnectionStatus } from '../../../../../bitbucket/server-credential-connection'
+import { rememberOwnBitbucketAuthor } from '../../../../../bitbucket/bitbucket-own-comment-authors'
 import {
   BitbucketPullRequestCommentAdd,
   BitbucketPullRequestDiffRead,
@@ -66,7 +67,13 @@ export const BITBUCKET_PULL_REQUEST_METHODS = [
     name: 'bitbucket.addPullRequestComment',
     permission: 'workspace',
     params: BitbucketPullRequestCommentAdd,
-    handler: async ({ body, parentId, anchor, ...target }) =>
-      addBitbucketPullRequestComment(target, body, { anchor, parentId })
+    handler: async ({ body, parentId, anchor, ...target }) => {
+      const posted = await addBitbucketPullRequestComment(target, body, { anchor, parentId })
+      if (posted.ok) {
+        // Saved before the caller hears back, so a bitbucket.mentioned rule never takes it for an ask.
+        await rememberOwnBitbucketAuthor(posted.value.author?.id).catch(() => undefined)
+      }
+      return posted
+    }
   })
 ]

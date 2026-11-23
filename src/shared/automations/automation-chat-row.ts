@@ -25,6 +25,8 @@ const SOURCE_MARKS = {
   linear: 'linear',
   gmail: 'google',
   calendar: 'google',
+  // No Bitbucket mark yet: the row shows the plain event mark.
+  bitbucket: 'event',
   webhook: 'webhook'
 } as const satisfies Record<AutomationEventSource, AutomationRowMark>
 

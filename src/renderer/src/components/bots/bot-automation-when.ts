@@ -116,6 +116,13 @@ export function eventLabel(trigger: AutomationEventKind): string {
       return translate('bots.automations.on.gmailNewEmail', 'On a new email')
     case 'calendar':
       return translate('bots.automations.on.calendarStartingSoon', 'Before a meeting starts')
+    case 'bitbucket':
+      return trigger.event === 'mentioned'
+        ? translate('bots.automations.on.bitbucketMentioned', 'When mentioned on Bitbucket')
+        : translate(
+            'bots.automations.on.bitbucketReviewRequested',
+            'When a Bitbucket review is requested'
+          )
   }
 }
 
