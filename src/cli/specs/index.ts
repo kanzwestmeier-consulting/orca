@@ -32,6 +32,7 @@ import { TERMINAL_DAEMON_COMMAND_SPECS } from './terminal-daemon'
 import { EMULATOR_COMMAND_SPECS } from './emulator'
 import { INTROSPECTION_COMMAND_SPECS } from './introspection'
 import { JIRA_COMMAND_SPECS } from './jira'
+import { BITBUCKET_COMMAND_SPECS } from './bitbucket'
 import { LINEAR_COMMAND_SPECS } from './linear'
 import { VM_COMMAND_SPECS } from './vm'
 import { VM_ENV_COMMAND_SPECS } from './vm-env'
@@ -82,6 +83,7 @@ export const COMMAND_SPECS: CommandSpec[] = [
   ...ENVIRONMENT_COMMAND_SPECS,
   ...MANAGED_SERVER_COMMAND_SPECS,
   ...JIRA_COMMAND_SPECS,
+  ...BITBUCKET_COMMAND_SPECS,
   ...LINEAR_COMMAND_SPECS,
   ...VM_COMMAND_SPECS,
   ...VM_ENV_COMMAND_SPECS,
