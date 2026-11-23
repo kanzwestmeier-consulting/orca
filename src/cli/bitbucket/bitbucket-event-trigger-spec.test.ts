@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { AutomationEventTriggers } from '../../shared/rpc-contract/automation-bot-params'
 import {
   formatAutomationEventTrigger,
   parseAutomationEventTrigger
@@ -22,6 +23,14 @@ describe('Bitbucket --on rules', () => {
       'bitbucket.mentioned repos=acme/api,acme/web mention="@orca review" from=712020:a,712020:b'
     )
     expect(parseAutomationEventTrigger(written)).toEqual(rule)
+  })
+
+  it('writes rules the host accepts when they are saved', () => {
+    const rules = [
+      parseAutomationEventTrigger('bitbucket.mentioned repos=acme/api mention="@orca review"'),
+      parseAutomationEventTrigger('bitbucket.review_requested repos=acme/api from=712020:a')
+    ]
+    expect(AutomationEventTriggers.parse(rules)).toEqual(rules)
   })
 
   it('refuses a rule that names no repository, or something that is not one', () => {
