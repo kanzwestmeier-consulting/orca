@@ -4,11 +4,11 @@ import { hookIdOfRule, type WebhookFilters } from './connector-webhook-contract'
 import { assertAutomationOnce } from './automation-once'
 import { assertGitHubFilters, assertWorkflowWait } from './automation-github-triggers'
 import {
-  assertGoogleTrigger,
-  isGoogleTrigger,
-  type AutomationGoogleTrigger,
-  type GoogleEventSource
-} from './automation-google-triggers'
+  assertHostCheckedTrigger,
+  isHostCheckedTrigger,
+  type AutomationHostCheckedTrigger,
+  type HostCheckedEventSource
+} from './automation-host-checked-triggers'
 
 /**
  * What each source can start a bot automation on. Anyone in a place the bot and its owner are in may
@@ -44,7 +44,9 @@ export const AUTOMATION_EVENT_KINDS = {
   webhook: ['call'],
   // Checked on the host that holds the Google sign-in; never sent to Orca Cloud.
   gmail: ['new_email'],
-  calendar: ['starting_soon']
+  calendar: ['starting_soon'],
+  // Checked on the host that holds the Bitbucket connection; never sent to Orca Cloud.
+  bitbucket: ['mentioned', 'review_requested']
 } as const
 
 /**
@@ -83,23 +85,24 @@ export function automationEventKind(source: string, event: string): AutomationEv
 }
 
 /** The sources Orca Cloud delivers: a connector app's events. */
-export type ConnectorEventSource = Exclude<AutomationEventSource, 'webhook' | GoogleEventSource>
+type CloudlessSource = 'webhook' | HostCheckedEventSource
+export type ConnectorEventSource = Exclude<AutomationEventSource, CloudlessSource>
 
 /** One rule that starts the automation; the filters narrow where it listens. */
 export type AutomationEventTrigger =
   | AutomationConnectorEventTrigger
   | AutomationWebhookTrigger
-  | AutomationGoogleTrigger
+  | AutomationHostCheckedTrigger
 
 export function isConnectorSource(source: AutomationEventSource): source is ConnectorEventSource {
-  return source !== 'webhook' && !isGoogleTrigger({ source })
+  return source !== 'webhook' && !isHostCheckedTrigger({ source })
 }
 
 /** A Slack, GitHub or Linear rule: the ones Orca Cloud matches. */
 export function isConnectorTrigger(
   trigger: AutomationEventTrigger
 ): trigger is AutomationConnectorEventTrigger {
-  return !isWebhookTrigger(trigger) && !isGoogleTrigger(trigger)
+  return !isWebhookTrigger(trigger) && !isHostCheckedTrigger(trigger)
 }
 
 /** A Slack, GitHub or Linear rule. */
@@ -291,8 +294,10 @@ function assertThreadResults(automation: Automation): void {
   if (triggers.some(isWebhookTrigger)) {
     throw new Error('A webhook call has no thread; send its results somewhere else.')
   }
-  if (triggers.some((trigger) => isGoogleTrigger(trigger))) {
-    throw new Error('A Gmail or Calendar event has no thread; send its results somewhere else.')
+  if (triggers.some((trigger) => isHostCheckedTrigger(trigger))) {
+    throw new Error(
+      'A Gmail, Calendar or Bitbucket event has no thread; send its results somewhere else.'
+    )
   }
   if (automation.bot?.runsIn !== 'new') {
     throw new Error(
@@ -334,8 +339,8 @@ export function assertAutomationEventTriggers(automation: Automation): void {
       assertWebhookTrigger(trigger, triggers)
       continue
     }
-    if (isGoogleTrigger(trigger)) {
-      assertGoogleTrigger(trigger)
+    if (isHostCheckedTrigger(trigger)) {
+      assertHostCheckedTrigger(trigger)
       continue
     }
     if (

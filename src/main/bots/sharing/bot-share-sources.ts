@@ -115,8 +115,13 @@ function readAutomations(
       continue
     }
     for (const trigger of automation.on) {
+      // A Bitbucket rule names this owner's repositories, so it stays here like a webhook.
       if (!isConnectorTrigger(trigger) && !isGoogleTrigger(trigger)) {
-        leftOut.push({ kind: 'automation', name: automation.name, why: 'webhook' })
+        leftOut.push({
+          kind: 'automation',
+          name: automation.name,
+          why: trigger.source === 'bitbucket' ? 'repositories' : 'webhook'
+        })
         continue
       }
       const textContains = 'textContains' in trigger ? trigger.textContains : undefined

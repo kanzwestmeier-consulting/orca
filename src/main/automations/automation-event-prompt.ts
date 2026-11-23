@@ -3,6 +3,7 @@ import type {
   AutomationRunWebhookCall
 } from '../../shared/automation-event-triggers'
 import { MAX_AUTOMATION_EVENT_TEXT_LENGTH } from '../../shared/automation-event-triggers'
+import { parseBitbucketPullRequestUrl } from '../../shared/bitbucket/bitbucket-pull-request-target'
 import { fenceQuotedText } from '../../shared/quoted-text-fence'
 import { botMembersFrom, type BotMember } from '../../shared/bot-types'
 
@@ -12,7 +13,8 @@ export const AUTOMATION_EVENT_SOURCE_NAMES: Record<AutomationRunEvent['source'],
   linear: 'Linear',
   webhook: 'Webhook',
   gmail: 'Gmail',
-  calendar: 'Google Calendar'
+  calendar: 'Google Calendar',
+  bitbucket: 'Bitbucket'
 }
 
 /** The Google account and Orca's ref for the mail or event, so the run reads it as the owner. */
@@ -24,6 +26,23 @@ function googleLines(event: AutomationRunEvent): string[] {
   const read = event.source === 'gmail' ? 'orca gmail read' : 'orca calendar get'
   return [
     `Google account ${google.account}: \`${read} ${google.ref} --account ${google.account}\` reads it in full.`
+  ]
+}
+
+// This host builds a Bitbucket event's key and link itself; checked, they are ids, not anyone's words.
+const BITBUCKET_COMMENT_KEY = /^bitbucket:[\w.-]+\/[\w.-]+:comment:(\d+)$/
+
+/** How the run reads the pull request and answers under the comment that asked. */
+function bitbucketLines(event: AutomationRunEvent): string[] {
+  if (event.source !== 'bitbucket' || !event.url || !parseBitbucketPullRequestUrl(event.url)) {
+    return []
+  }
+  const comment = BITBUCKET_COMMENT_KEY.exec(event.key)?.[1]
+  return [
+    `Bitbucket pull request ${event.url}: \`orca bitbucket pr view ${event.url}\` reads it, and \`orca skills get orca-bitbucket\` has the review steps.`,
+    ...(comment
+      ? [`The comment that asked has id ${comment}; \`--parent ${comment}\` answers under it.`]
+      : [])
   ]
 }
 
@@ -112,6 +131,7 @@ export function automationRunPrompt(
     ...(event.source === 'slack' ? slackLines(event) : []),
     ...(event.webhook ? webhookLines(event.webhook) : []),
     ...googleLines(event),
+    ...bitbucketLines(event),
     ...(asker ? [ASKER_LINES[asker]] : [])
   ].join('\n')
   // Anyone in the place may start a run, so the text says whose it is.

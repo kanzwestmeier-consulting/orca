@@ -10,6 +10,7 @@ export const AUTOMATION_RUN_COPY = {
   webhook: 'Webhook',
   gmail: 'Gmail',
   calendar: 'Calendar',
+  bitbucket: 'Bitbucket',
   instructions: 'Instructions',
   event: 'Event',
   startError: 'Error',
@@ -102,6 +103,8 @@ export const AUTOMATION_RUN_COPY = {
   'what.linear.issue_moved': 'Issue moved',
   'what.gmail.new_email': 'New email',
   'what.calendar.starting_soon': 'Meeting starting soon',
+  'what.bitbucket.mentioned': 'Mention',
+  'what.bitbucket.review_requested': 'Review requested',
   'what.other': 'Event'
 } as const
 
