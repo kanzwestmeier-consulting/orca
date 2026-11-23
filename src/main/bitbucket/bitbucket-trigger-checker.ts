@@ -8,7 +8,7 @@ import type {
   BitbucketReviewFailure,
   BitbucketReviewResult
 } from '../../shared/bitbucket/bitbucket-pull-request-review'
-import type { BitbucketRecentComments } from './cloud-pull-request-activity'
+import type { BitbucketCommentLook } from './bitbucket-comment-look'
 import {
   bitbucketRuleTargets,
   isMentionTarget,
@@ -21,7 +21,10 @@ import {
   type BitbucketReviewTarget,
   type BitbucketRuleTarget
 } from './bitbucket-trigger-match'
-import type { BitbucketTriggerState } from './bitbucket-trigger-state'
+import type {
+  BitbucketRepositoryCheckState,
+  BitbucketTriggerState
+} from './bitbucket-trigger-state'
 
 // Bitbucket Cloud allows about 1000 repository requests an hour; the checks stay well under it, so
 // with many repositories each one is simply asked less often.
@@ -42,10 +45,12 @@ export type BitbucketTriggerCheckerDeps = {
   accountId(): Promise<string | null>
   /** Account ids this host has commented as. */
   ownAuthors(): Promise<readonly string[]>
-  recentComments(
+  /** The repository's comments not handled yet; `saved` is its state entry, which the look updates. */
+  newComments(
     repo: string,
-    afterId: number | null
-  ): Promise<BitbucketReviewResult<BitbucketRecentComments>>
+    saved: BitbucketRepositoryCheckState,
+    now: number
+  ): Promise<BitbucketReviewResult<BitbucketCommentLook>>
   reviewRequests(
     repo: string,
     accountId: string
@@ -143,11 +148,13 @@ export class BitbucketTriggerChecker {
     for (const [repo, saved] of Object.entries(state.repos)) {
       if (!wanted.has(checkKey({ repo, kind: 'comments' }))) {
         delete saved.commentId
+        delete saved.since
+        delete saved.pulls
       }
       if (!wanted.has(checkKey({ repo, kind: 'reviews' }))) {
         delete saved.requested
       }
-      if (saved.commentId === undefined && saved.requested === undefined) {
+      if (Object.keys(saved).length === 0) {
         delete state.repos[repo]
       }
     }
@@ -196,19 +203,11 @@ export class BitbucketTriggerChecker {
     now: number
   ): Promise<BitbucketReviewFailure | null> {
     const saved = (state.repos[repo] ??= {})
-    const reply = await this.deps.recentComments(repo, saved.commentId ?? null)
-    if (!reply.ok) {
-      return reply
+    const look = await this.deps.newComments(repo, saved, now)
+    if (!look.ok) {
+      return look
     }
-    // The first look only marks where the repository stands: older comments never start a run.
-    if (saved.commentId === undefined) {
-      saved.commentId = reply.value.newestId ?? 0
-      return null
-    }
-    if (reply.value.skipped) {
-      console.warn(`[bitbucket] skipped older new comments in ${repo}`)
-    }
-    for (const comment of reply.value.comments) {
+    for (const comment of look.value.comments) {
       const fresh = now - (Date.parse(comment.createdAt) || now) <= MAX_COMMENT_AGE_MS
       for (const target of fresh ? targets : []) {
         if (
@@ -219,8 +218,9 @@ export class BitbucketTriggerChecker {
           return null
         }
       }
-      saved.commentId = comment.id
+      look.value.handled(comment)
     }
+    look.value.finish()
     return null
   }
 

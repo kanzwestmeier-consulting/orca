@@ -1,6 +1,9 @@
 // Bitbucket automation rules: matched on the host that holds the Bitbucket connection, by asking
 // Bitbucket about once a minute, so they are never sent to Orca Cloud and an older cloud never sees them.
-import { parseBitbucketRepositoryInput } from './bitbucket/bitbucket-pull-request-target'
+import {
+  parseBitbucketRepositoryInput,
+  parseBitbucketServerRepositoryInput
+} from './bitbucket/bitbucket-pull-request-target'
 
 export const DEFAULT_BITBUCKET_MENTION = '@orca'
 
@@ -41,9 +44,13 @@ export function isBitbucketTrigger<Rule extends { source: string }>(
   return trigger.source === 'bitbucket'
 }
 
-/** `workspace/repository` in its one spelling, or null when it names no repository. */
+/**
+ * `workspace/repository` in its one spelling, or null when it names no repository. On Data Center
+ * that is `project/repository` or `~user/repository`; the host asks whichever Bitbucket it is
+ * connected to.
+ */
 export function bitbucketRepoKey(input: string): string | null {
-  const repo = parseBitbucketRepositoryInput(input)
+  const repo = parseBitbucketRepositoryInput(input) ?? parseBitbucketServerRepositoryInput(input)
   return repo ? `${repo.workspace}/${repo.repoSlug}`.toLowerCase() : null
 }
 

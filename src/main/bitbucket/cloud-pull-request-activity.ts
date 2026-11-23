@@ -18,6 +18,8 @@ export type BitbucketRecentComment = {
   id: number
   pullRequestId: number
   pullRequestTitle: string
+  /** Built by this host from the repository and number, never a link Bitbucket sent. */
+  pullRequestUrl: string
   author: BitbucketReviewUser | null
   body: string
   createdAt: string
@@ -43,7 +45,10 @@ type RawActivity = {
   pull_request?: { id?: number; title?: string | null } | null
 }
 
-function recentComment(raw: RawActivity): BitbucketRecentComment | null {
+function recentComment(
+  repo: BitbucketRepositoryTarget,
+  raw: RawActivity
+): BitbucketRecentComment | null {
   const comment = raw.comment
   const pullRequestId = raw.pull_request?.id
   if (typeof comment?.id !== 'number' || typeof pullRequestId !== 'number' || comment.deleted) {
@@ -53,6 +58,7 @@ function recentComment(raw: RawActivity): BitbucketRecentComment | null {
     id: comment.id,
     pullRequestId,
     pullRequestTitle: raw.pull_request?.title ?? '',
+    pullRequestUrl: bitbucketCloudPullRequestUrl(repo, pullRequestId),
     author: mapBitbucketReviewUser(comment.user),
     body: comment.content?.raw ?? '',
     createdAt: comment.created_on ?? ''
@@ -93,7 +99,7 @@ export async function listBitbucketCloudRecentComments(
     if (!reply.ok) {
       return reply
     }
-    const comments = (reply.value.values ?? []).flatMap((raw) => recentComment(raw) ?? [])
+    const comments = (reply.value.values ?? []).flatMap((raw) => recentComment(repo, raw) ?? [])
     const ids = comments.map((comment) => comment.id)
     newestId = Math.max(newestId ?? 0, ...ids) || newestId
     for (const comment of comments) {

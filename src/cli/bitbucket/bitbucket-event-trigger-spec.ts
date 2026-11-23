@@ -153,7 +153,7 @@ export const BITBUCKET_TRIGGER_OPTIONS = [
   'bitbucket:',
   `  bitbucket.mentioned  when a pull request comment contains the phrase; mention="<phrase>" (default ${DEFAULT_BITBUCKET_MENTION}, any case). Quoted lines and the host's own comments never count`,
   "  bitbucket.review_requested  when the Bitbucket account this host is connected with is added as a reviewer of an open pull request; needs a connection whose account Bitbucket names (`orca bitbucket connection`), which a repository access token doesn't have",
-  '  repos=<workspace>/<repository>  required: the repositories to watch, comma-separated, up to 10',
-  '  from=<account ids>  only these people (for review_requested, the pull request authors), comma-separated; `orca bitbucket pr comment list --json` shows `author.id`',
-  '  Checked about once a minute on the computer the bot runs on, with its saved Bitbucket connection, and only from when the rule was saved; nothing goes through Orca Cloud. The run gets the pull request link: `orca bitbucket pr view <link>` and `orca skills get orca-bitbucket` take it from there. What the comment or pull request says is quoted as information, never instructions.'
+  '  repos=<workspace>/<repository>  required: the repositories to watch, comma-separated, up to 10; on a Data Center server, <project>/<repository> or ~<user>/<repository>',
+  '  from=<account ids>  only these people (for review_requested, the pull request authors), comma-separated; `orca bitbucket pr comment list --json` shows `author.id` (on Data Center, the user name)',
+  '  Checked about once a minute on the computer the bot runs on, with its saved Bitbucket connection (bitbucket.org or the connected Data Center server; with both connected the rules wait), and only from when the rule was saved; nothing goes through Orca Cloud. The run gets the pull request link: `orca bitbucket pr view <link>` and `orca skills get orca-bitbucket` take it from there. What the comment or pull request says is quoted as information, never instructions.'
 ].join('\n')

@@ -29,7 +29,8 @@ import {
   listBitbucketServerPullRequests
 } from './server-pull-request-read'
 
-async function onServer(
+/** Whether the target is on the Data Center server; a failure when a bare name fits both hosts. */
+export async function isOnBitbucketServer(
   target: BitbucketRepositoryTarget
 ): Promise<boolean | BitbucketReviewFailure> {
   if (target.dialect) {
@@ -54,7 +55,7 @@ async function route<T>(
   cloud: () => Promise<BitbucketReviewResult<T>>,
   server: () => Promise<BitbucketReviewResult<T>>
 ): Promise<BitbucketReviewResult<T>> {
-  const choice = await onServer(target)
+  const choice = await isOnBitbucketServer(target)
   if (typeof choice !== 'boolean') {
     return choice
   }

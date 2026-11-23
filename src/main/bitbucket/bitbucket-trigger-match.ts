@@ -21,7 +21,7 @@ export type BitbucketRuleTarget<
   Rule extends AutomationBitbucketTrigger = AutomationBitbucketTrigger
 > = {
   automationId: string
-  /** `workspace/repository`, lower case. */
+  /** `workspace/repository` (Data Center: `project/repository`), lower case. */
   repo: string
   rule: Rule
 }
@@ -78,9 +78,6 @@ export function reviewRuleMatches(rule: ReviewRule, pullRequest: BitbucketPullRe
   return fromAllows(rule.from, pullRequest.author?.id)
 }
 
-const pullRequestUrl = (repo: string, id: number) =>
-  `https://bitbucket.org/${repo}/pull-requests/${id}`
-
 const quotedText = (title: string, body?: string) =>
   [`Pull request: ${title || '(no title)'}`, ...(body ? [body] : [])]
     .join('\n')
@@ -103,7 +100,7 @@ export function mentionRunEvent(
     ...(author ? { actor: author.displayName } : {}),
     ...(author?.id ? { actorId: author.id } : {}),
     place: `${target.repo} #${comment.pullRequestId}`,
-    url: pullRequestUrl(target.repo, comment.pullRequestId),
+    url: comment.pullRequestUrl,
     text: quotedText(comment.pullRequestTitle, comment.body)
   }
 }
@@ -125,7 +122,7 @@ export function reviewRunEvent(
     ...(author ? { actor: author.displayName } : {}),
     ...(author?.id ? { actorId: author.id } : {}),
     place: `${target.repo} #${pullRequest.id}`,
-    url: pullRequestUrl(target.repo, pullRequest.id),
+    url: pullRequest.url,
     text: quotedText(pullRequest.title)
   }
 }

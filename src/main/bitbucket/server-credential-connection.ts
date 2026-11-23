@@ -3,6 +3,7 @@ import {
   getBitbucketServerBaseUrl,
   hasEnvBitbucketServerCredential,
   normalizeBitbucketServerBaseUrl,
+  resolveBitbucketServerAuthConfig,
   serverAuthHeaders
 } from './server-auth-config'
 import {
@@ -74,6 +75,16 @@ export async function connectBitbucketServer(
   }
   await saveBitbucketServerCredential({ baseUrl, account: result.account, accessToken })
   return { ok: true, account: result.account }
+}
+
+/** The user name the connected server gives the saved token, asked now; null when it names none. */
+export async function readBitbucketServerAccount(): Promise<string | null> {
+  const config = await resolveBitbucketServerAuthConfig()
+  if (!config.baseUrl || !config.accessToken) {
+    return null
+  }
+  const result = await verifyToken(config.baseUrl, config.accessToken)
+  return result.ok ? result.account : null
 }
 
 export function disconnectBitbucketServer(): Promise<void> {

@@ -3,7 +3,10 @@ import type {
   AutomationRunWebhookCall
 } from '../../shared/automation-event-triggers'
 import { MAX_AUTOMATION_EVENT_TEXT_LENGTH } from '../../shared/automation-event-triggers'
-import { parseBitbucketPullRequestUrl } from '../../shared/bitbucket/bitbucket-pull-request-target'
+import {
+  parseBitbucketPullRequestUrl,
+  parseBitbucketServerPullRequestUrl
+} from '../../shared/bitbucket/bitbucket-pull-request-target'
 import { fenceQuotedText } from '../../shared/quoted-text-fence'
 import { botMembersFrom, type BotMember } from '../../shared/bot-types'
 
@@ -30,11 +33,15 @@ function googleLines(event: AutomationRunEvent): string[] {
 }
 
 // This host builds a Bitbucket event's key and link itself; checked, they are ids, not anyone's words.
-const BITBUCKET_COMMENT_KEY = /^bitbucket:[\w.-]+\/[\w.-]+:comment:(\d+)$/
+const BITBUCKET_COMMENT_KEY = /^bitbucket:~?[\w.-]+\/[\w.-]+:comment:(\d+)$/
 
 /** How the run reads the pull request and answers under the comment that asked. */
 function bitbucketLines(event: AutomationRunEvent): string[] {
-  if (event.source !== 'bitbucket' || !event.url || !parseBitbucketPullRequestUrl(event.url)) {
+  if (
+    event.source !== 'bitbucket' ||
+    !event.url ||
+    !(parseBitbucketPullRequestUrl(event.url) ?? parseBitbucketServerPullRequestUrl(event.url))
+  ) {
     return []
   }
   const comment = BITBUCKET_COMMENT_KEY.exec(event.key)?.[1]

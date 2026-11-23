@@ -5,6 +5,7 @@ import {
   BitbucketTriggerChecker,
   type BitbucketTriggerCheckerDeps
 } from './bitbucket-trigger-checker'
+import { lookAtBitbucketCloudComments } from './bitbucket-comment-look'
 import type { BitbucketTriggerState } from './bitbucket-trigger-state'
 import type { BitbucketRecentComment } from './cloud-pull-request-activity'
 
@@ -15,6 +16,7 @@ const comment = (id: number, body: string, authorId = 'dana'): BitbucketRecentCo
   id,
   pullRequestId: 7,
   pullRequestTitle: 'Add retries',
+  pullRequestUrl: `https://bitbucket.org/${REPO}/pull-requests/7`,
   author: { id: authorId, displayName: authorId },
   body,
   createdAt: new Date(NOW - 1000).toISOString()
@@ -52,14 +54,19 @@ function setUp(
     ],
     accountId: async () => (options.accountId === undefined ? 'orca-account' : options.accountId),
     ownAuthors: async () => host.ownAuthors,
-    recentComments: async (_repo, afterId) => ({
-      ok: true,
-      value: {
-        comments: host.feed.filter((entry) => afterId !== null && entry.id > afterId),
-        newestId: host.feed.at(-1)?.id ?? null,
-        skipped: false
-      }
-    }),
+    newComments: (repo, saved) =>
+      lookAtBitbucketCloudComments(
+        async (afterId) => ({
+          ok: true,
+          value: {
+            comments: host.feed.filter((entry) => afterId !== null && entry.id > afterId),
+            newestId: host.feed.at(-1)?.id ?? null,
+            skipped: false
+          }
+        }),
+        saved,
+        repo
+      ),
     reviewRequests: async () => ({ ok: true, value: host.asking }),
     runForEvent: async (_automationId, started) => {
       if (host.failStarts) {
