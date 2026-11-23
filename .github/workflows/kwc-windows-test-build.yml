@@ -4,7 +4,7 @@ name: KWC Windows test build (fork only)
 
 on:
   push:
-    branches: ['kwc/corporate-build']
+    branches: ['kwc/corporate-build', 'kwc/corporate-build-dc']
 
 permissions:
   contents: read
