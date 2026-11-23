@@ -79,6 +79,7 @@ export type BitbucketPullRequestCommentList = {
 
 export type BitbucketReviewFailureCode =
   | 'bitbucket_not_connected'
+  | 'bitbucket_line_not_in_diff'
   | 'bitbucket_auth_rejected'
   | 'bitbucket_forbidden'
   | 'bitbucket_not_found'

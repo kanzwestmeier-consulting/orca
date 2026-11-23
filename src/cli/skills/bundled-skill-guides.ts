@@ -318,6 +318,7 @@ const ORCA_BITBUCKET_MARKDOWN = [
   "- `bitbucket_not_connected`: no Bitbucket connection is saved on the Orca host. Ask the user to connect Bitbucket in Orca's Settings > Integrations.",
   "- `bitbucket_auth_rejected`, `bitbucket_forbidden`: the saved credential was rejected or lacks pull request access. Report it; do not retry.",
   "- `bitbucket_not_found`: no such repository or pull request, or the credential cannot see it. Check the workspace, repository and number.",
+  "- `bitbucket_line_not_in_diff`: the diff does not show that line of that file, so nothing was posted. Read `pr diff --path <file>` and take the line number from its hunks.",
   "- `bitbucket_rate_limited`: wait before retrying.",
   "- `bitbucket_timeout`, `bitbucket_write_unverified`, or a comment that failed with a network error: the comment may have been posted. Run `comment list` and look for it before posting again.",
   "",
