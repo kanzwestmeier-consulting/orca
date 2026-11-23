@@ -8,6 +8,7 @@ export const CLI_COMMAND_NAMES = [
   'auth',
   'automations',
   'back',
+  'bitbucket',
   'bot',
   'browser',
   'calendar',

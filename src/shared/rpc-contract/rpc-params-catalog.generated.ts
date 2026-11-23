@@ -139,6 +139,12 @@ import {
   AutomationUpdate
 } from './automations/automation-params'
 import {
+  BitbucketPullRequestCommentAdd,
+  BitbucketPullRequestDiffRead,
+  BitbucketPullRequestList,
+  BitbucketPullRequestRead
+} from './bitbucket/bitbucket-pull-request-params'
+import {
   ComposioApp,
   ComposioApps,
   ComposioBot,
@@ -1230,6 +1236,12 @@ export const RPC_PARAMS_BY_METHOD = {
   'automation.runs': AutomationRuns,
   'automation.show': AutomationId,
   'automation.update': AutomationUpdate,
+  'bitbucket.addPullRequestComment': BitbucketPullRequestCommentAdd,
+  'bitbucket.getPullRequest': BitbucketPullRequestRead,
+  'bitbucket.getPullRequestDiff': BitbucketPullRequestDiffRead,
+  'bitbucket.listPullRequestComments': BitbucketPullRequestRead,
+  'bitbucket.listPullRequests': BitbucketPullRequestList,
+  'bitbucket.status': null,
   'bots.access.decide': BotAccessDecide,
   'bots.access.list': null,
   'bots.access.redeem': BotAccessRedeem,
