@@ -49,7 +49,9 @@ export function botEventSources(bot: BotConnectors): AutomationEventSource[] {
     webhook: bot.webhooks === true,
     // Google events come from this host's own sign-in, once the owner turns Google on for the bot.
     gmail: bot.google === true,
-    calendar: bot.google === true
+    calendar: bot.google === true,
+    // Checked on the bot's host with its own Bitbucket connection; `orca bitbucket connection` shows it.
+    bitbucket: true
   }
   return Object.keys(connected)
     .filter(isEventSource)

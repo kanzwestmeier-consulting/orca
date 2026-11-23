@@ -218,7 +218,9 @@ export const EVAL_SCENARIOS: EvalScenario[] = [
         ...on
           .filter(
             (trigger) =>
-              trigger.event !== 'mentioned' || !/deploy/i.test(trigger.textContains ?? '')
+              !isConnectorTrigger(trigger) ||
+              trigger.event !== 'mentioned' ||
+              !/deploy/i.test(trigger.textContains ?? '')
           )
           .map((trigger) => `changed trigger ${formatTrigger(trigger)}`)
       ]

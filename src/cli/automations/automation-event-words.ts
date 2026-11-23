@@ -55,7 +55,11 @@ export const EVENT_WORDS: EventWords = {
   },
   webhook: { call: "the automation's webhook URL is called" },
   gmail: { new_email: 'a new email arrives' },
-  calendar: { starting_soon: 'an event on your calendar starts soon' }
+  calendar: { starting_soon: 'an event on your calendar starts soon' },
+  bitbucket: {
+    mentioned: 'a Bitbucket pull request comment contains the mention phrase',
+    review_requested: "this host's Bitbucket account is asked to review a pull request"
+  }
 }
 
 // What a source never starts on, so the bot can say so when it confirms a trigger.

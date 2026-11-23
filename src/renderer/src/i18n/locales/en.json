@@ -22511,6 +22511,7 @@
         "webhook": "Webhook",
         "gmail": "Gmail",
         "calendar": "Calendar",
+        "bitbucket": "Bitbucket",
         "instructions": "Instructions",
         "event": "Event",
         "startError": "Error",
@@ -22592,6 +22593,10 @@
           },
           "calendar": {
             "starting_soon": "Meeting starting soon"
+          },
+          "bitbucket": {
+            "mentioned": "Mention",
+            "review_requested": "Review requested"
           },
           "other": "Event"
         },
@@ -28058,7 +28063,9 @@
         "linearIssueMoved": "When a Linear issue moves",
         "webhookCall": "When its webhook is called",
         "gmailNewEmail": "On a new email",
-        "calendarStartingSoon": "Before a meeting starts"
+        "calendarStartingSoon": "Before a meeting starts",
+        "bitbucketMentioned": "When mentioned on Bitbucket",
+        "bitbucketReviewRequested": "When a Bitbucket review is requested"
       },
       "google": {
         "minutesBefore": "{{count}} min before",

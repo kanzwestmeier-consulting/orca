@@ -24,6 +24,7 @@ const KEYS: Record<AutomationRunCopyKey, string> = {
   webhook: 'components.native-chat.automationRun.webhook',
   gmail: 'components.native-chat.automationRun.gmail',
   calendar: 'components.native-chat.automationRun.calendar',
+  bitbucket: 'components.native-chat.automationRun.bitbucket',
   instructions: 'components.native-chat.automationRun.instructions',
   event: 'components.native-chat.automationRun.event',
   startError: 'components.native-chat.automationRun.startError',
@@ -117,6 +118,9 @@ const KEYS: Record<AutomationRunCopyKey, string> = {
   'what.linear.issue_moved': 'components.native-chat.automationRun.what.linear.issue_moved',
   'what.gmail.new_email': 'components.native-chat.automationRun.what.gmail.new_email',
   'what.calendar.starting_soon': 'components.native-chat.automationRun.what.calendar.starting_soon',
+  'what.bitbucket.mentioned': 'components.native-chat.automationRun.what.bitbucket.mentioned',
+  'what.bitbucket.review_requested':
+    'components.native-chat.automationRun.what.bitbucket.review_requested',
   'what.other': 'components.native-chat.automationRun.what.other'
 }
 
