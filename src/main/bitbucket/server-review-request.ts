@@ -80,6 +80,25 @@ export function getBitbucketServerJson<T>(
   )
 }
 
+/** A path on the server itself, not under one repository: `/rest/api/1.0` + `path`. */
+export function getBitbucketServerRootJson<T>(
+  repo: BitbucketRepositoryTarget,
+  path: string,
+  query: BitbucketServerQuery = []
+): Promise<BitbucketReviewResult<T>> {
+  return send(repo, false, (connection) => {
+    const url = new URL(`${connection.baseUrl}/rest/api/1.0${path}`)
+    for (const [key, value] of query) {
+      url.searchParams.append(key, value)
+    }
+    return requestHostedReviewJson<T>(
+      url,
+      { headers: { Accept: 'application/json', ...connection.headers } },
+      READ_TIMEOUT_MS
+    )
+  })
+}
+
 export function getBitbucketServerText(
   repo: BitbucketRepositoryTarget,
   path: string,

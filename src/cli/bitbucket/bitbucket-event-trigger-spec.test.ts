@@ -8,7 +8,7 @@ import {
 describe('Bitbucket --on rules', () => {
   it('reads a rule into one spelling and writes the same rule back', () => {
     const rule = parseAutomationEventTrigger(
-      'bitbucket.mentioned repos=Acme/API,acme/web,acme/api mention="@orca review" from=712020:b,712020:a'
+      'bitbucket.mentioned repos=acme/API,acme/web,acme/api mention="@orca review" from=712020:b,712020:a'
     )
     expect(rule).toEqual({
       id: rule.id,

@@ -14,22 +14,25 @@ type FakePullRequest = {
   id: number
   title: string
   updatedDate: number
-  reviewers: { user: { name: string } }[]
-  properties: { commentCount: number }
+  toRef: { repository: { slug: string; project: { key: string } } }
+  properties?: { commentCount: number }
   activities: unknown[]
 }
+
+const inRepository = (slug: string) => ({ repository: { slug, project: { key: 'PRJ' } } })
 
 describe('Bitbucket Data Center trigger checks', () => {
   let server: Server
   let baseUrl = ''
   let pullRequests: FakePullRequest[] = []
-  let activityReads: number[] = []
+  let asked: string[] = []
 
   beforeEach(async () => {
     pullRequests = []
-    activityReads = []
+    asked = []
     server = createServer((request, response) => {
       const path = new URL(request.url ?? '/', 'http://127.0.0.1').pathname
+      asked.push(path.replace('/rest/api/1.0', ''))
       const activities = /\/pull-requests\/(\d+)\/activities$/.exec(path)
       const body = activities
         ? {
@@ -40,9 +43,6 @@ describe('Bitbucket Data Center trigger checks', () => {
             values: pullRequests.map(({ activities: _activities, ...listed }) => listed),
             isLastPage: true
           }
-      if (activities) {
-        activityReads.push(Number(activities[1]))
-      }
       response.writeHead(200, { 'Content-Type': 'application/json' })
       response.end(JSON.stringify(body))
     })
@@ -64,9 +64,9 @@ describe('Bitbucket Data Center trigger checks', () => {
     await new Promise<void>((resolve) => server.close(() => resolve()))
   })
 
-  const commented = (id: number, text: string, createdDate: number, replies: unknown[] = []) => ({
+  const commented = (id: number, createdDate: number, replies: unknown[] = []) => ({
     action: 'COMMENTED',
-    comment: { id, text, author: { name: 'dana' }, createdDate, comments: replies }
+    comment: { id, text: '@orca review', author: { name: 'dana' }, createdDate, comments: replies }
   })
 
   async function look(saved: BitbucketRepositoryCheckState, now: number) {
@@ -77,15 +77,17 @@ describe('Bitbucket Data Center trigger checks', () => {
     return reply.value
   }
 
-  it('starts from the first look, then finds each new comment once, replies included', async () => {
-    const old = commented(10, '@orca review', T0 - 3_600_000)
+  const activityReads = () => asked.filter((path) => path.endsWith('/activities')).length
+
+  it('starts from the first look, then finds a new reply once even when the list shows no change', async () => {
+    const old = commented(10, T0 - 3_600_000)
+    // No comment count and an update time that never moves: the list gives no hint of a new comment.
     pullRequests = [
       {
         id: 7,
         title: 'Add retries',
         updatedDate: T0 - 3_600_000,
-        reviewers: [],
-        properties: { commentCount: 1 },
+        toRef: inRepository('api'),
         activities: [old]
       }
     ]
@@ -94,12 +96,12 @@ describe('Bitbucket Data Center trigger checks', () => {
     const first = await look(saved, T0)
     first.finish()
     expect(first.comments).toEqual([])
-    expect(activityReads).toEqual([])
+    expect(activityReads()).toBe(0)
 
-    // Nothing moved: the pull request is not read again.
+    // The old comment is read now, and still starts nothing.
     const quiet = await look(saved, T0 + 60_000)
+    expect(quiet.comments).toEqual([])
     quiet.finish()
-    expect(activityReads).toEqual([])
 
     const reply = {
       id: 12,
@@ -108,38 +110,30 @@ describe('Bitbucket Data Center trigger checks', () => {
       createdDate: T0 + 90_000
     }
     pullRequests[0].activities = [{ ...old, comment: { ...old.comment, comments: [reply] } }]
-    pullRequests[0].properties.commentCount = 2
     const second = await look(saved, T0 + 120_000)
     expect(second.comments.map((comment) => [comment.id, comment.author?.id])).toEqual([
       [12, 'sam']
     ])
+    // The server's own spelling of the project key.
     expect(second.comments[0].pullRequestUrl).toBe(
-      `${baseUrl}/projects/prj/repos/api/pull-requests/7`
+      `${baseUrl}/projects/PRJ/repos/api/pull-requests/7`
     )
 
-    // A look that stops before finishing reads the pull request again and still skips what it handled.
+    // A look that stopped before finishing reads the pull request again and skips what it handled.
     const retried = await look(saved, T0 + 180_000)
     expect(retried.comments.map((comment) => comment.id)).toEqual([12])
     retried.handled(retried.comments[0])
     const afterHandled = await look(saved, T0 + 240_000)
     expect(afterHandled.comments).toEqual([])
-    afterHandled.finish()
-
-    const settled = await look(saved, T0 + 300_000)
-    expect(settled.comments).toEqual([])
-    expect(activityReads).toEqual([7, 7, 7])
   })
 
-  it('lists the open pull requests that ask the account to review', async () => {
-    pullRequests = [7, 8].map((id) => ({
-      id,
-      title: `PR ${id}`,
-      updatedDate: T0,
-      reviewers: id === 8 ? [{ user: { name: 'Orca-Bot' } }] : [],
-      properties: { commentCount: 0 },
-      activities: []
-    }))
-    const reply = await listBitbucketServerReviewRequests(REPO, baseUrl, 'orca-bot')
-    expect(reply.ok && reply.value.map((pullRequest) => pullRequest.id)).toEqual([8])
+  it("lists the repository's pull requests that ask the connected account to review", async () => {
+    pullRequests = [
+      { id: 7, title: 'Here', updatedDate: T0, toRef: inRepository('api'), activities: [] },
+      { id: 8, title: 'Elsewhere', updatedDate: T0, toRef: inRepository('web'), activities: [] }
+    ]
+    const reply = await listBitbucketServerReviewRequests(REPO, baseUrl)
+    expect(reply.ok && reply.value.map((pullRequest) => pullRequest.id)).toEqual([7])
+    expect(asked).toEqual(['/dashboard/pull-requests'])
   })
 })

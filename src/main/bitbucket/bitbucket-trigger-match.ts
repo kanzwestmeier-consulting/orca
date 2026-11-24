@@ -21,7 +21,7 @@ export type BitbucketRuleTarget<
   Rule extends AutomationBitbucketTrigger = AutomationBitbucketTrigger
 > = {
   automationId: string
-  /** `workspace/repository` (Data Center: `project/repository`), lower case. */
+  /** `workspace/repository` (Data Center: `PROJECT/repository`), as the rule spells it. */
   repo: string
   rule: Rule
 }

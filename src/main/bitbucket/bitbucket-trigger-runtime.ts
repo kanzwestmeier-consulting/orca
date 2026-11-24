@@ -37,6 +37,9 @@ const UNKNOWN_REPOSITORY: BitbucketReviewFailure = {
   error: 'The rule names no Bitbucket repository.'
 }
 
+// No user name: Data Center names hold no spaces or brackets.
+const UNNAMED_SERVER_ACCOUNT = '(connected account)'
+
 type Place =
   | { on: 'cloud'; target: BitbucketRepositoryTarget }
   | { on: 'server'; target: BitbucketRepositoryTarget; baseUrl: string }
@@ -68,7 +71,11 @@ async function connectedAccountId(): Promise<string | null> {
     const result = await fetchBitbucketUserResult(config)
     return result.ok ? (result.user?.account_id ?? null) : null
   }
-  return (await hasBitbucketServerCredential()) ? readBitbucketServerAccount() : null
+  // Data Center lists review requests for the token's own user, so those rules need no name; the
+  // name only helps to tell this host's own comments, which what it posted already does.
+  return (await hasBitbucketServerCredential())
+    ? ((await readBitbucketServerAccount()) ?? UNNAMED_SERVER_ACCOUNT)
+    : null
 }
 
 export function bindBitbucketTriggersToAutomations(
@@ -99,7 +106,7 @@ export function bindBitbucketTriggersToAutomations(
         return place
       }
       return place.on === 'server'
-        ? listBitbucketServerReviewRequests(place.target, place.baseUrl, accountId)
+        ? listBitbucketServerReviewRequests(place.target, place.baseUrl)
         : listBitbucketCloudReviewRequests(place.target, accountId)
     },
     runForEvent: (automationId, event) => runtime.runAutomationForEvent(automationId, event),

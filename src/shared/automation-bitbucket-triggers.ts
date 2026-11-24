@@ -46,12 +46,12 @@ export function isBitbucketTrigger<Rule extends { source: string }>(
 
 /**
  * `workspace/repository` in its one spelling, or null when it names no repository. On Data Center
- * that is `project/repository` or `~user/repository`; the host asks whichever Bitbucket it is
- * connected to.
+ * that is `PROJECT/repository` or `~user/repository`; the host asks whichever Bitbucket it is
+ * connected to. The workspace keeps its case: a Data Center project key is sent as it was written.
  */
 export function bitbucketRepoKey(input: string): string | null {
   const repo = parseBitbucketRepositoryInput(input) ?? parseBitbucketServerRepositoryInput(input)
-  return repo ? `${repo.workspace}/${repo.repoSlug}`.toLowerCase() : null
+  return repo ? `${repo.workspace}/${repo.repoSlug.toLowerCase()}` : null
 }
 
 export function assertBitbucketTrigger(trigger: AutomationBitbucketTrigger): void {

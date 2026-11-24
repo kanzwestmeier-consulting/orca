@@ -16,9 +16,12 @@ const StateSchema = z.object({
         commentId: z.number().optional(),
         /** Data Center: when the repository was first looked at; older comments never start a run. */
         since: z.number().optional(),
-        /** Data Center has no repository feed: each open pull request's comment count and newest comment seen. */
+        /** Data Center has no repository feed: each open pull request's mark, newest comment seen and last read. */
         pulls: z
-          .record(z.string(), z.object({ mark: z.string(), commentId: z.number() }))
+          .record(
+            z.string(),
+            z.object({ mark: z.string(), commentId: z.number(), readAt: z.number().optional() })
+          )
           .optional(),
         /** Open pull requests whose review request already started its runs. */
         requested: z.array(z.number()).optional()
